@@ -1,82 +1,344 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EcoOpenSenseLab - Monitoreo Ambiental Abierto</title>
-  <meta name="description" content="Laboratorio interactivo y repositorio abierto de sensores ecológicos de bajo costo para la educación científica.">
+  <title>EcoOpenSenseLab - Ciencia Abierta para la Enseñanza de la Ecología</title>
+  <meta name="description"
+    content="Laboratorio abierto de sensores ecológicos de bajo costo y repositorios abiertos para fortalecer la enseñanza y el análisis.">
   <link rel="stylesheet" href="style.css">
-  <!-- Chart.js para visualización de datos de alta fidelidad -->
+  <!-- Chart.js para visualización de datos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons para iconos limpios y consistentes -->
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
 
-  <div class="container">
-    <!-- Header General -->
-    <header>
-      <div class="logo-container">
-        <div class="logo-icon">E</div>
-        <div class="logo-text">
-          <h1>EcoOpenSenseLab</h1>
-          <p>Repositorio y Sensores Ecológicos Abiertos</p>
+  <!-- NAVBAR SUPERIOR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo-group">
+        <div class="logo-mark">
+          <i data-lucide="leaf" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="logo-info">
+          <span class="logo-title">EcoOpenSenseLab</span>
+          <span class="logo-tagline">Ciencia abierta para la enseñanza de la ecología</span>
         </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
+
+      <ul class="nav-links">
+        <li><a href="#" class="nav-item active" data-target="homeView">Inicio</a></li>
+        <li><a href="#" class="nav-item" data-target="proyectoView">Proyecto</a></li>
+        <li><a href="#" class="nav-item" id="navSensoresLink">Sensores</a></li>
+        <li><a href="#" class="nav-item" data-target="datosView">Datos</a></li>
+        <li><a href="#" class="nav-item" data-target="recursosView">Recursos</a></li>
+        <li><a href="#" class="nav-item">Ciencia Abierta</a></li>
+        <li><a href="#" class="nav-item">Publicaciones</a></li>
+        <li><a href="#" class="nav-item">Noticias</a></li>
+        <li><a href="#" class="nav-item">Contacto</a></li>
+      </ul>
+
+      <div class="nav-actions">
         <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Cambiar tema">
           <i data-lucide="sun" class="sun-icon"></i>
           <i data-lucide="moon" class="moon-icon"></i>
         </button>
-        <a href="https://github.com/chechenque/EcoOpenSenseLab" target="_blank" class="github-badge" id="githubLink">
+        <a href="https://github.com/chechenque/EcoOpenSenseLab" target="_blank" class="nav-icon-link" title="GitHub">
           <i data-lucide="github"></i>
-          <span>Ver en GitHub</span>
+        </a>
+        <a href="#" class="nav-icon-link" title="Notion">
+          <i data-lucide="book-open"></i>
         </a>
       </div>
-    </header>
+    </div>
+  </nav>
 
-    <!-- VISTA PRINCIPAL (HOME) -->
+  <div class="container main-content-wrapper">
+
+    <!-- VISTA PRINCIPAL (PORTAL / LANDING) -->
     <main id="homeView">
-      <!-- Framework Metodológico -->
-      <section class="framework-intro glass-card">
-        <h2>Pedagogía Activa de Datos</h2>
-        <p>
-          Este espacio está diseñado para empoderar al estudiantado en el estudio y conservación de su entorno. 
-          A través del uso de microcontroladores y sensores de bajo costo, se fomenta una participación activa 
-          en todas las fases del ciclo científico de datos ambientales.
-        </p>
-        <div class="stages-grid">
-          <div class="stage-card">
-            <div class="stage-icon"><i data-lucide="cpu"></i></div>
-            <h3>Recolección</h3>
+
+      <!-- HERO SECTION -->
+      <header class="hero-section">
+        <div class="hero-content">
+          <h1>Aprender ecología a través de <span class="highlight">datos abiertos</span> y sensores ambientales.</h1>
+          <p>
+            Integramos sensores de bajo costo, microcontroladores y repositorios abiertos para fortalecer
+            la enseñanza, el análisis y la conservación de los ecosistemas.
+          </p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary" id="heroExploreBtn">
+              <i data-lucide="bar-chart-2"></i> Explorar datos
+            </button>
+            <button class="btn btn-outline" id="heroDocBtn">
+              <i data-lucide="book-open"></i> Documentación
+            </button>
+            <button class="btn btn-outline" id="heroSensorsBtn">
+              <i data-lucide="cpu"></i> Sensores
+            </button>
+            <a href="https://github.com/chechenque/EcoOpenSenseLab" target="_blank" class="btn btn-outline">
+              <i data-lucide="github"></i> GitHub
+            </a>
+            <a href="#" class="btn btn-outline">
+              <i data-lucide="notebook"></i> Notion
+            </a>
           </div>
-          <div class="stage-card">
-            <div class="stage-icon"><i data-lucide="book-open"></i></div>
-            <h3>Documentación</h3>
+        </div>
+
+        <!-- Mockup Físico del Dispositivo de Monitoreo -->
+        <div class="hero-mockup-container">
+          <div class="device-mockup">
+            <div class="screw top-left"></div>
+            <div class="screw top-right"></div>
+            <div class="screw bottom-left"></div>
+            <div class="screw bottom-right"></div>
+            <div class="device-screen">
+              <div class="screen-header">NODO-01 EcoSense</div>
+              <div class="screen-grid">
+                <div class="screen-stat"><span class="lbl">TEMP:</span> <span class="val"
+                    id="mock-temp">25.6</span><span class="unit">°C</span></div>
+                <div class="screen-stat"><span class="lbl">HUMD:</span> <span class="val" id="mock-hum">48.3</span><span
+                    class="unit">%</span></div>
+                <div class="screen-stat"><span class="lbl">eCO2:</span> <span class="val" id="mock-co2">532</span><span
+                    class="unit">ppm</span></div>
+                <div class="screen-stat"><span class="lbl">TVOC:</span> <span class="val" id="mock-tvoc">120</span><span
+                    class="unit">ppb</span></div>
+              </div>
+              <div class="screen-footer">EN LINEA - TRANSMITIENDO</div>
+            </div>
+            <div class="device-connector"></div>
           </div>
-          <div class="stage-card">
-            <div class="stage-icon"><i data-lucide="database"></i></div>
-            <h3>Organización</h3>
+        </div>
+      </header>
+
+      <!-- SECCIÓN PILARES METODOLÓGICOS -->
+      <section class="pillars-row">
+        <div class="pillar-card">
+          <div class="pillar-icon"><i data-lucide="leaf"></i></div>
+          <div class="pillar-text">
+            <h3>Datos abiertos</h3>
+            <p>Conjuntos de datos ambientales organizados y documentados.</p>
           </div>
-          <div class="stage-card">
-            <div class="stage-icon"><i data-lucide="terminal"></i></div>
-            <h3>Procesamiento</h3>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon"><i data-lucide="trending-up"></i></div>
+          <div class="pillar-text">
+            <h3>Visualizaciones</h3>
+            <p>Explora e interactúa con gráficas de tus variables ambientales.</p>
           </div>
-          <div class="stage-card">
-            <div class="stage-icon"><i data-lucide="bar-chart-3"></i></div>
-            <h3>Visualización</h3>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon"><i data-lucide="graduation-cap"></i></div>
+          <div class="pillar-text">
+            <h3>Recursos educativos</h3>
+            <p>Materiales, prácticas y tutoriales para estudiantes y docentes.</p>
           </div>
-          <div class="stage-card">
-            <div class="stage-icon"><i data-lucide="lightbulb"></i></div>
-            <h3>Interpretación</h3>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon"><i data-lucide="unlock"></i></div>
+          <div class="pillar-text">
+            <h3>Ciencia abierta</h3>
+            <p>Promovemos principios FAIR, transparencia y reutilización.</p>
           </div>
         </div>
       </section>
 
-      <!-- Grid de Sensores Activos -->
+      <!-- TABLERO DE CONTROL (3 COLUMNAS) -->
+      <section class="dashboard-grid">
+
+        <!-- Columna 1: Conjuntos de datos recientes -->
+        <div class="dashboard-card recent-datasets">
+          <div class="card-header">
+            <h3>Conjuntos de datos recientes</h3>
+            <a href="#" class="card-link-header">Ver todos los datos →</a>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sitio</th>
+                  <th>Fecha</th>
+                  <th>Variables</th>
+                  <th style="text-align: right;">Descargar</th>
+                </tr>
+              </thead>
+              <tbody id="recentDatasetsTableBody">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Columna 2: Visualización destacada -->
+        <div class="dashboard-card featured-viz">
+          <div class="card-header">
+            <h3>Visualización destacada</h3>
+            <select id="featuredVariableSelect" class="styled-select">
+              <option value="temperature">Temperatura (°C)</option>
+              <option value="humidity">Humedad (%)</option>
+              <option value="airquality">eCO2 (ppm)</option>
+            </select>
+          </div>
+          <div class="featured-chart-container">
+            <canvas id="featuredChart"></canvas>
+          </div>
+          <div class="chart-footer-caption" id="featuredChartCaption">
+            Laguna A - Temperatura
+          </div>
+          <button class="btn btn-text-arrow" id="seeAllVizBtn">
+            Ver más visualizaciones →
+          </button>
+        </div>
+
+        <!-- Columna 3: Sensores utilizados -->
+        <div class="dashboard-card sensors-used">
+          <div class="card-header">
+            <h3>Sensores utilizados</h3>
+            <a href="#" class="card-link-header" id="seeAllSensorsLink">Ver todos →</a>
+          </div>
+
+          <div class="sensors-cards-row">
+            <!-- Ficha Sensor 1: EN160 -->
+            <div class="sensor-mini-card">
+              <div class="sensor-img-placeholder">
+                <i data-lucide="wind" style="width: 32px; height: 32px; color: var(--accent-primary);"></i>
+              </div>
+              <div class="sensor-mini-info">
+                <h4>EN160</h4>
+                <ul>
+                  <li><i data-lucide="check" class="bullet-check"></i> Calidad del aire</li>
+                  <li><i data-lucide="check" class="bullet-check"></i> TVOC</li>
+                  <li><i data-lucide="check" class="bullet-check"></i> eCO2</li>
+                </ul>
+                <button class="btn btn-mini" data-sensor-id="airquality">Más información</button>
+              </div>
+            </div>
+
+            <!-- Ficha Sensor 2: AHT21 -->
+            <div class="sensor-mini-card">
+              <div class="sensor-img-placeholder">
+                <i data-lucide="thermometer" style="width: 32px; height: 32px; color: var(--accent-secondary);"></i>
+              </div>
+              <div class="sensor-mini-info">
+                <h4>AHT21</h4>
+                <ul>
+                  <li><i data-lucide="check" class="bullet-check"></i> Temperatura</li>
+                  <li><i data-lucide="check" class="bullet-check"></i> Humedad</li>
+                </ul>
+                <button class="btn btn-mini" data-sensor-id="temperature">Más información</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Próximos sensores -->
+          <div class="upcoming-sensors">
+            <h4>Próximos sensores</h4>
+            <div class="upcoming-tags">
+              <span class="tag"><i data-lucide="droplet" class="tag-icon"></i> pH</span>
+              <span class="tag"><i data-lucide="activity" class="tag-icon"></i> Conductividad</span>
+              <span class="tag"><i data-lucide="sun" class="tag-icon"></i> Luminosidad</span>
+              <span class="tag"><i data-lucide="sprout" class="tag-icon"></i> Humedad del suelo</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN RECURSOS EDUCATIVOS DESTACADOS -->
+      <section class="resources-section">
+        <div class="card-header" style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">Recursos educativos destacados
+          </h2>
+          <a href="#" class="card-link-header">Ver todos los recursos →</a>
+        </div>
+
+        <div class="resources-grid">
+          <div class="resource-card">
+            <div class="resource-icon"><i data-lucide="flask-conical"></i></div>
+            <h4>Prácticas de laboratorio</h4>
+            <p>Actividades guiadas para el uso de sensores y análisis de datos en ecología.</p>
+          </div>
+          <div class="resource-card">
+            <div class="resource-icon"><i data-lucide="book-open-check"></i></div>
+            <h4>Tutoriales</h4>
+            <p>Guías paso a paso sobre el hardware, software de microcontroladores y programación.</p>
+          </div>
+          <div class="resource-card">
+            <div class="resource-icon"><i data-lucide="file-spreadsheet"></i></div>
+            <h4>Datasets de ejemplo</h4>
+            <p>Conjuntos de datos históricos y listos para descargar, explorar y analizar.</p>
+          </div>
+          <div class="resource-card">
+            <div class="resource-icon"><i data-lucide="play-circle"></i></div>
+            <h4>Videos educativos</h4>
+            <p>Explicaciones visuales y tutoriales animados sobre ecología y electrónica.</p>
+          </div>
+          <div class="resource-card">
+            <div class="resource-icon"><i data-lucide="help-circle"></i></div>
+            <h4>Preguntas frecuentes</h4>
+            <p>Resuelve dudas comunes sobre la calibración de sensores y armado de nodos.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- PÁGINAS INFORMATIVAS ADICIONALES (Simuladas en la SPA) -->
+    <main id="proyectoView" style="display: none; animation: fadeIn var(--transition-normal);">
+      <div class="dashboard-card" style="padding: 2.5rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">Sobre el Proyecto EcoOpenSenseLab</h2>
+        <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+          EcoOpenSenseLab es una iniciativa que busca democratizar el acceso al monitoreo ecológico mediante el diseño
+          de hardware abierto de bajo costo y repositorios accesibles. Nuestro principal objetivo es involucrar a
+          estudiantes
+          y profesores en el proceso de investigación científica real.
+        </p>
+        <p style="color: var(--text-secondary);">
+          Al construir sus propias estaciones de medición y organizar sus bases de datos, los participantes experimentan
+          de primera
+          mano la complejidad y belleza del trabajo de campo científico, fomentando un pensamiento analítico y la
+          conciencia de conservación ambiental.
+        </p>
+      </div>
+    </main>
+
+    <main id="datosView" style="display: none; animation: fadeIn var(--transition-normal);">
+      <div class="dashboard-card" style="padding: 2.5rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">Repositorio de Datos Abiertos</h2>
+        <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+          Aquí se alojan y organizan las bitácoras y registros de datos recolectados por todos los nodos activos de la
+          red del laboratorio.
+          Los datos se publican bajo la licencia Creative Commons CC BY 4.0, lo que garantiza su libre reutilización
+          para fines académicos y de investigación.
+        </p>
+        <p style="color: var(--text-secondary);">
+          Puedes descargar conjuntos de datos completos desde el panel de control o utilizar nuestra API experimental
+          para el procesamiento automatizado en Python u R.
+        </p>
+      </div>
+    </main>
+
+    <main id="recursosView" style="display: none; animation: fadeIn var(--transition-normal);">
+      <div class="dashboard-card" style="padding: 2.5rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">Recursos para el Aula y Campo</h2>
+        <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+          Accede a nuestras guías de campo, hojas de trabajo preparadas para diferentes niveles de enseñanza
+          (bachillerato y universidad)
+          y esquemas de armado electrónico descargables.
+        </p>
+        <p style="color: var(--text-secondary);">
+          Todo nuestro material educativo está diseñado bajo la filosofía de código abierto y ciencia libre. ¡Eres libre
+          de copiarlo, adaptarlo y redistribuirlo!
+        </p>
+      </div>
+    </main>
+
+    <!-- GRID DE SENSORES (Anterior Home integrado) -->
+    <main id="sensorsIndexView" style="display: none; animation: fadeIn var(--transition-normal);">
       <section>
         <h2 class="section-title">
-          <i data-lucide="radio"></i> Estaciones de Monitoreo
+          <i data-lucide="radio"></i> Módulos de Sensores Disponibles
         </h2>
         <div class="sensors-grid" id="sensorsGrid">
           <!-- Inyectado dinámicamente desde js -->
@@ -84,11 +346,11 @@
       </section>
     </main>
 
-    <!-- VISTA DETALLADA DEL SENSOR -->
+    <!-- VISTA DETALLADA DEL SENSOR (Individual) -->
     <section id="detailView" class="detail-view">
       <div class="detail-header">
         <button class="back-btn" id="backToHomeBtn">
-          <i data-lucide="arrow-left"></i> Volver al Inicio
+          <i data-lucide="arrow-left"></i> Volver a la Lista
         </button>
         <div class="detail-title-block">
           <div class="detail-icon-wrapper" id="detailIconWrapper">
@@ -96,7 +358,9 @@
           </div>
           <div>
             <h2 id="detailTitle" style="font-size: 1.5rem; font-weight: 700;">Nombre del Sensor</h2>
-            <p id="detailCategory" style="color: var(--accent-primary); font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Categoría</p>
+            <p id="detailCategory"
+              style="color: var(--accent-primary); font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+              Categoría</p>
           </div>
         </div>
       </div>
@@ -132,7 +396,8 @@
 
           <div class="glass-card info-card">
             <h3>Especificaciones Técnicas</h3>
-            <div id="technicalSpecs" style="font-size: 0.875rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.5rem;">
+            <div id="technicalSpecs"
+              style="font-size: 0.875rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.5rem;">
               <!-- Inyectado dinámicamente -->
             </div>
             <button class="export-btn" id="exportCsvBtn">
@@ -152,13 +417,19 @@
           <div class="doc-tab-content active" id="tabContent-guide">
             <div class="setup-guide">
               <ol>
-                <li><strong>Alimentación:</strong> Conecta el pin <strong>VCC</strong> del sensor al pin de <strong>3.3V o 5V</strong> del microcontrolador.</li>
-                <li><strong>Tierra:</strong> Conecta el pin <strong>GND</strong> del sensor al pin de tierra <strong>GND</strong> del microcontrolador.</li>
-                <li><strong>Señal/Datos:</strong> Conecta el pin de <strong>Datos/SDA</strong> al pin digital recomendado (ver especificaciones técnicas del sensor).</li>
-                <li><strong>Resistencia (Opcional):</strong> Para sensores DHT22, se aconseja una resistencia pull-up de 10kΩ entre VCC y la línea de datos si el módulo no viene pre-ensamblado en placa.</li>
+                <li><strong>Alimentación:</strong> Conecta el pin <strong>VCC</strong> del sensor al pin de <strong>3.3V
+                    o 5V</strong> del microcontrolador.</li>
+                <li><strong>Tierra:</strong> Conecta el pin <strong>GND</strong> del sensor al pin de tierra
+                  <strong>GND</strong> del microcontrolador.
+                </li>
+                <li><strong>Señal/Datos:</strong> Conecta el pin de <strong>Datos/SDA</strong> al pin digital
+                  recomendado (ver especificaciones técnicas del sensor).</li>
+                <li><strong>Resistencia (Opcional):</strong> Para sensores DHT22, se aconseja una resistencia pull-up de
+                  10kΩ entre VCC y la línea de datos si el módulo no viene pre-ensamblado en placa.</li>
               </ol>
               <p style="font-size: 0.875rem; color: var(--text-muted);">
-                * Nota: Estas conexiones forman parte de la etapa de <strong>Recolección</strong> y aseguran la correcta lectura física del ecosistema.
+                * Nota: Estas conexiones forman parte de la etapa de <strong>Recolección</strong> y aseguran la correcta
+                lectura física del ecosistema.
               </p>
             </div>
           </div>
@@ -166,7 +437,8 @@
           <!-- Pestaña 2: Código -->
           <div class="doc-tab-content" id="tabContent-code">
             <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-              Copia este sketch en el Arduino IDE para programar tu microcontrolador y transmitir datos en formato serial legible para su posterior <strong>Organización</strong>.
+              Copia este sketch en el Arduino IDE para programar tu microcontrolador y transmitir datos en formato
+              serial legible para su posterior <strong>Organización</strong>.
             </p>
             <div class="code-wrapper">
               <div class="code-header">
@@ -182,23 +454,79 @@
       </div>
     </section>
 
-    <!-- Toast Notification System -->
-    <div class="toast" id="toastNotification">
-      <i data-lucide="check-circle-2" style="color: var(--accent-primary); width: 18px; height: 18px;"></i>
-      <span id="toastMessage">¡Copiado con éxito!</span>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast" id="toastNotification">
+    <i data-lucide="check-circle-2" style="color: var(--accent-primary); width: 18px; height: 18px;"></i>
+    <span id="toastMessage">¡Copiado con éxito!</span>
+  </div>
+
+  <!-- FOOTER VERDE INSTITUCIONAL -->
+  <footer class="footer-pine">
+    <div class="footer-stats-bar">
+      <div class="stat-item">
+        <div class="stat-icon"><i data-lucide="map-pin"></i></div>
+        <div class="stat-number">12</div>
+        <div class="stat-label">Sitios de monitoreo</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon"><i data-lucide="database"></i></div>
+        <div class="stat-number">356</div>
+        <div class="stat-label">Conjuntos de datos</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon"><i data-lucide="file-text"></i></div>
+        <div class="stat-number">24</div>
+        <div class="stat-label">Variables disponibles</div>
+      </div>
     </div>
 
-    <!-- Footer -->
-    <footer>
-      <p>EcoOpenSenseLab &copy; 2026. Proyecto educativo abierto y de bajo costo para el monitoreo de ecosistemas.</p>
-      <p style="margin-top: 0.5rem; font-size: 0.75rem;">
-        Desarrollado para la participación activa en el ciclo de datos ecológicos. 
-        <a href="https://github.com/chechenque/EcoOpenSenseLab" target="_blank">Código Abierto bajo Licencia MIT</a>.
-      </p>
-    </footer>
-  </div>
+    <div class="footer-links-grid">
+      <div class="footer-brand-col">
+        <div class="logo-group" style="margin-bottom: 1rem;">
+          <div class="logo-mark" style="background: #ffffff; color: #0d3c26;">
+            <i data-lucide="leaf" style="width: 20px; height: 20px;"></i>
+          </div>
+          <span class="logo-title" style="color: #ffffff; font-weight: 700;">EcoOpenSenseLab</span>
+        </div>
+        <p class="brand-desc">
+          Ciencia abierta para la enseñanza de la ecología mediante sensores de bajo costo y microcontroladores.
+        </p>
+      </div>
+
+      <div class="footer-nav-col">
+        <h4>Enlaces rápidos</h4>
+        <ul>
+          <li><a href="https://github.com/chechenque/EcoOpenSenseLab" target="_blank"><i data-lucide="github"
+                style="width: 14px; height: 14px;"></i> GitHub del proyecto</a></li>
+          <li><a href="#"><i data-lucide="book-open" style="width: 14px; height: 14px;"></i> Documentación en Notion</a>
+          </li>
+          <li><a href="#"><i data-lucide="heart" style="width: 14px; height: 14px;"></i> Cómo contribuir</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-social-col">
+        <h4>Síguenos</h4>
+        <div class="social-icons">
+          <a href="#" aria-label="GitHub"><i data-lucide="github"></i></a>
+          <a href="#" aria-label="Notion"><i data-lucide="book-open"></i></a>
+          <a href="mailto:Pendiente@unam.mx" aria-label="Email"><i data-lucide="mail"></i></a>
+        </div>
+        <div class="footer-email">Pendiente@unam.mx</div>
+      </div>
+    </div>
+
+    <div class="footer-bottom-copyright">
+      <p>&copy; 2026 EcoOpenSenseLab. Todos los derechos reservados.</p>
+      <p class="license-text">Licencia: <a href="https://creativecommons.org/licenses/by/4.0/deed.es" target="_blank">CC
+          BY 4.0</a></p>
+      <p class="heart-text">Hecho con <span>💚</span> para la educación y la conservación.</p>
+    </div>
+  </footer>
 
   <!-- Script principal del cliente (Modulo) -->
   <script type="module" src="app.js"></script>
 </body>
+
 </html>

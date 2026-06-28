@@ -4,17 +4,42 @@ import { initChart, updateChart } from './js/chartHelper.js';
 // --- ESTADO DE LA APLICACIÓN ---
 let activeSensor = null;
 let currentTimeframe = 'live';
-let homeIntervalId = null;
+let mockupIntervalId = null;
 let detailIntervalId = null;
-let detailDataBuffer = []; // Mantiene los datos en memoria para actualizar el gráfico en tiempo real
+let detailDataBuffer = []; 
+
+// Instancia separada para el gráfico destacado del Home
+let featuredChartInstance = null;
 
 // --- ELEMENTOS DEL DOM ---
-const homeView = document.getElementById('homeView');
-const detailView = document.getElementById('detailView');
-const sensorsGrid = document.getElementById('sensorsGrid');
-const backToHomeBtn = document.getElementById('backToHomeBtn');
+const mainViews = {
+  homeView: document.getElementById('homeView'),
+  proyectoView: document.getElementById('proyectoView'),
+  datosView: document.getElementById('datosView'),
+  recursosView: document.getElementById('recursosView'),
+  sensorsIndexView: document.getElementById('sensorsIndexView'),
+  detailView: document.getElementById('detailView')
+};
 
-// Detalle del Sensor
+// Navegación
+const navLinks = document.querySelectorAll('.nav-links a');
+const navSensoresLink = document.getElementById('navSensoresLink');
+
+// Mockup Físico de Pantalla
+const mockTemp = document.getElementById('mock-temp');
+const mockHum = document.getElementById('mock-hum');
+const mockCo2 = document.getElementById('mock-co2');
+const mockTvoc = document.getElementById('mock-tvoc');
+
+// Tabla de Datasets Recientes
+const recentDatasetsTableBody = document.getElementById('recentDatasetsTableBody');
+
+// Gráfico Destacado del Home
+const featuredVariableSelect = document.getElementById('featuredVariableSelect');
+const featuredChartCaption = document.getElementById('featuredChartCaption');
+const seeAllVizBtn = document.getElementById('seeAllVizBtn');
+
+// Detalle del Sensor (Panel individual)
 const detailTitle = document.getElementById('detailTitle');
 const detailCategory = document.getElementById('detailCategory');
 const detailIconWrapper = document.getElementById('detailIconWrapper');
@@ -24,29 +49,289 @@ const technicalSpecs = document.getElementById('technicalSpecs');
 const arduinoCodeSnippet = document.getElementById('arduinoCodeSnippet');
 const copyCodeBtn = document.getElementById('copyCodeBtn');
 const exportCsvBtn = document.getElementById('exportCsvBtn');
+const backToHomeBtn = document.getElementById('backToHomeBtn');
 
 // Notificaciones
 const toastNotification = document.getElementById('toastNotification');
 const toastMessage = document.getElementById('toastMessage');
 
+// --- DATOS SIMULADOS PARA TABLA DE SITIOS ---
+const recentDatasets = [
+  { site: 'Laguna A', date: '12/08/2026', variables: ['Temperatura', 'Humedad', 'eCO2'], sensorIds: ['temperature', 'humidity', 'airquality'] },
+  { site: 'Bosque B', date: '19/08/2026', variables: ['TVOC', 'eCO2', 'Temperatura'], sensorIds: ['airquality', 'temperature'] },
+  { site: 'Humedad C', date: '26/08/2026', variables: ['Temperatura', 'Humedad'], sensorIds: ['temperature', 'humidity'] },
+  { site: 'Parque D', date: '02/09/2026', variables: ['Temperatura', 'Humedad', 'TVOC'], sensorIds: ['temperature', 'humidity', 'airquality'] },
+  { site: 'Río E', date: '10/09/2026', variables: ['pH', 'Temperatura', 'Conductividad'], sensorIds: ['temperature'] }
+];
+
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
-  renderHomeGrid();
-  startHomeLiveUpdates();
+  setupNavigation();
+  renderHomeTable();
+  initFeaturedChart();
+  renderSensorsIndexGrid();
+  startMockupUpdates();
   setupEventListeners();
   
   // Procesar iconos iniciales de Lucide
   lucide.createIcons();
 });
 
-// --- FUNCIONES DE INTERFAZ ---
+// --- FUNCIONES DE NAVEGACIÓN ---
 
 /**
- * Renderiza la lista de sensores en la pantalla de inicio.
+ * Configura la navegación de tipo Single Page Application (SPA).
  */
-function renderHomeGrid() {
-  sensorsGrid.innerHTML = '';
+function setupNavigation() {
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = link.getAttribute('data-target');
+      if (target) {
+        switchView(target);
+        
+        // Actualizar clase activa en navbar
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  });
+
+  // Botón "Sensores" de la barra de navegación (redirige a la lista general)
+  navSensoresLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchView('sensorsIndexView');
+    navLinks.forEach(l => l.classList.remove('active'));
+    navSensoresLink.classList.add('active');
+  });
+}
+
+/**
+ * Alterna la visibilidad de los diferentes paneles de contenido.
+ * @param {string} viewId - El ID de la vista a mostrar.
+ */
+function switchView(viewId) {
+  // Detener ciclos de actualización detallados
+  stopDetailLiveUpdates();
+
+  // Ocultar todas las vistas
+  for (const key in mainViews) {
+    if (mainViews[key]) {
+      mainViews[key].style.display = 'none';
+    }
+  }
+
+  // Mostrar la vista objetivo
+  if (mainViews[viewId]) {
+    // Si la vista es la del detalle, se muestra como grid o flex segun la clase css, si no, block.
+    if (viewId === 'detailView') {
+      mainViews[viewId].style.display = 'grid';
+    } else {
+      mainViews[viewId].style.display = 'block';
+    }
+  }
+
+  // Reanudar o pausar el loop del mockup en base a si estamos en el Home
+  if (viewId === 'homeView') {
+    startMockupUpdates();
+    // Re-iniciar gráfico destacado al volver al home
+    setTimeout(() => {
+      initFeaturedChart();
+    }, 100);
+  } else {
+    stopMockupUpdates();
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  lucide.createIcons();
+}
+
+// --- LOGICA DE PANTALLA MOCKUP DEL DISPOSITIVO ---
+
+/**
+ * Actualiza los valores en la pantalla LCD digital simulada del Hero.
+ */
+function startMockupUpdates() {
+  if (mockupIntervalId) clearInterval(mockupIntervalId);
+
+  mockupIntervalId = setInterval(() => {
+    const tempSensor = getSensorById('temperature');
+    const humSensor = getSensorById('humidity');
+    const co2Sensor = getSensorById('airquality');
+
+    if (mockTemp && tempSensor) mockTemp.textContent = tempSensor.getLiveValue();
+    if (mockHum && humSensor) mockHum.textContent = humSensor.getLiveValue();
+    if (mockCo2 && co2Sensor) {
+      const co2Val = co2Sensor.getLiveValue();
+      mockCo2.textContent = co2Val;
+      // Estimar TVOC correlacionado (eCO2 * 0.2 + variaciones)
+      if (mockTvoc) {
+        const tvocVal = Math.round(co2Val * 0.2 + (Math.random() - 0.5) * 15);
+        mockTvoc.textContent = Math.max(10, tvocVal);
+      }
+    }
+  }, 3000);
+}
+
+function stopMockupUpdates() {
+  if (mockupIntervalId) {
+    clearInterval(mockupIntervalId);
+    mockupIntervalId = null;
+  }
+}
+
+// --- TABLA DE DATOS RECIENTES ---
+
+/**
+ * Renderiza la tabla de datos recientes en la primera columna del Dashboard.
+ */
+function renderHomeTable() {
+  if (!recentDatasetsTableBody) return;
+  recentDatasetsTableBody.innerHTML = '';
+
+  recentDatasets.forEach((dataset, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><strong>${dataset.site}</strong></td>
+      <td>${dataset.date}</td>
+      <td style="font-size: 0.75rem; color: var(--text-muted);">${dataset.variables.join(', ')}</td>
+      <td style="text-align: right;">
+        <button class="btn-csv" data-index="${index}">CSV</button>
+      </td>
+    `;
+    recentDatasetsTableBody.appendChild(row);
+  });
+
+  // Vincular botones de descarga CSV en la tabla
+  recentDatasetsTableBody.querySelectorAll('.btn-csv').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const index = parseInt(btn.getAttribute('data-index'));
+      downloadSiteCsv(recentDatasets[index]);
+    });
+  });
+}
+
+/**
+ * Genera y descarga un archivo CSV con datos simulados del sitio seleccionado.
+ */
+function downloadSiteCsv(dataset) {
+  let csvContent = 'data:text/csv;charset=utf-8,';
+  csvContent += 'Sitio,Marca de Tiempo,Variable,Valor,Unidad\r\n';
+
+  const now = new Date();
+  
+  // Agregar datos simulados para cada variable registrada
+  dataset.variables.forEach(varName => {
+    let unit = '°C';
+    let baseVal = 22;
+    if (varName === 'Humedad') { unit = '%'; baseVal = 55; }
+    else if (varName === 'eCO2') { unit = 'ppm'; baseVal = 500; }
+    else if (varName === 'TVOC') { unit = 'ppb'; baseVal = 100; }
+    else if (varName === 'pH') { unit = 'pH'; baseVal = 7.2; }
+    else if (varName === 'Conductividad') { unit = 'uS/cm'; baseVal = 300; }
+
+    // Generar 10 lecturas pasadas
+    for (let i = 9; i >= 0; i--) {
+      const time = new Date(now.getTime() - i * 3600000);
+      const timeStr = time.toISOString().replace('T', ' ').substring(0, 19);
+      const val = (baseVal + (Math.sin(i) * (baseVal * 0.15)) + (Math.random() - 0.5) * (baseVal * 0.05)).toFixed(1);
+      csvContent += `"${dataset.site}","${timeStr}","${varName}",${val},"${unit}"\r\n`;
+    }
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `datos_${dataset.site.toLowerCase().replace(' ', '_')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  showToast(`¡Datos de ${dataset.site} descargados!`);
+}
+
+// --- GRÁFICO DESTACADO DEL HOME ---
+
+/**
+ * Inicializa el gráfico central de visualización destacada en el Home.
+ */
+async function initFeaturedChart() {
+  const canvas = document.getElementById('featuredChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const selectedVar = featuredVariableSelect.value;
+  const sensor = getSensorById(selectedVar);
+  if (!sensor) return;
+
+  // Actualizar subtítulo
+  featuredChartCaption.innerHTML = `Laguna A - ${sensor.name}`;
+
+  // Obtener datos históricos de 24 horas (modo 'day')
+  const chartData = await sensor.getData('day');
+  
+  if (featuredChartInstance) {
+    featuredChartInstance.destroy();
+  }
+
+  const computedStyle = getComputedStyle(document.documentElement);
+  const accentPrimary = computedStyle.getPropertyValue('--accent-primary').trim() || '#059669';
+  const gridColor = computedStyle.getPropertyValue('--chart-grid').trim() || 'rgba(0, 0, 0, 0.05)';
+  const ticksColor = computedStyle.getPropertyValue('--chart-ticks').trim() || '#64748b';
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+  gradient.addColorStop(0, accentPrimary + '30');
+  gradient.addColorStop(1, accentPrimary + '00');
+
+  featuredChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartData.map(d => d.timestamp),
+      datasets: [{
+        label: sensor.name,
+        data: chartData.map(d => d.value),
+        borderColor: accentPrimary,
+        borderWidth: 2,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: accentPrimary,
+        pointRadius: 2,
+        pointHoverRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor, drawBorder: false },
+          ticks: { color: ticksColor, font: { size: 10 } }
+        },
+        y: {
+          grid: { color: gridColor, drawBorder: false },
+          ticks: { color: ticksColor, font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+// --- RENDERIZADO DEL ANTERIOR HOME (INDEX DE SENSORES) ---
+
+/**
+ * Renderiza el catálogo completo de sensores (el antiguo Home).
+ */
+function renderSensorsIndexGrid() {
+  const grid = document.getElementById('sensorsGrid');
+  if (!grid) return;
+  
+  grid.innerHTML = '';
   const sensors = getSensors();
 
   sensors.forEach(sensor => {
@@ -54,7 +339,6 @@ function renderHomeGrid() {
     card.className = 'glass-card sensor-card';
     card.setAttribute('data-id', sensor.id);
     
-    // Obtener valor de inicio
     const val = sensor.getLiveValue();
 
     card.innerHTML = `
@@ -70,7 +354,7 @@ function renderHomeGrid() {
         <p>${sensor.description}</p>
       </div>
       <div class="sensor-reading">
-        <span class="sensor-value" id="home-val-${sensor.id}">${val}</span>
+        <span class="sensor-value" id="index-val-${sensor.id}">${val}</span>
         <span class="sensor-unit">${sensor.unit}</span>
       </div>
     `;
@@ -79,64 +363,27 @@ function renderHomeGrid() {
       openSensorDetail(sensor.id);
     });
 
-    sensorsGrid.appendChild(card);
+    grid.appendChild(card);
   });
 }
 
-/**
- * Actualiza los valores en tiempo real del Home para dar sensación de dinamismo.
- */
-function startHomeLiveUpdates() {
-  if (homeIntervalId) clearInterval(homeIntervalId);
-  
-  homeIntervalId = setInterval(() => {
-    const sensors = getSensors();
-    sensors.forEach(sensor => {
-      const valEl = document.getElementById(`home-val-${sensor.id}`);
-      if (valEl) {
-        const newVal = sensor.getLiveValue();
-        
-        // Micro-animación al cambiar el valor
-        valEl.style.transition = 'color 0.2s ease';
-        valEl.style.color = '#34d399'; // Brillo verde
-        valEl.textContent = newVal;
-        
-        setTimeout(() => {
-          valEl.style.color = 'var(--text-primary)';
-        }, 300);
-      }
-    });
-  }, 4000); // Cada 4 segundos
-}
+// --- VISTA DETALLADA INDIVIDUAL (COMPATIBILIDAD) ---
 
 /**
- * Detiene las actualizaciones del Home.
- */
-function stopHomeLiveUpdates() {
-  if (homeIntervalId) {
-    clearInterval(homeIntervalId);
-    homeIntervalId = null;
-  }
-}
-
-/**
- * Abre la vista de detalle de un sensor e inicializa sus gráficos.
- * @param {string} sensorId - El ID del sensor seleccionado.
+ * Abre la pantalla de detalles de un sensor.
  */
 async function openSensorDetail(sensorId) {
-  stopHomeLiveUpdates();
   activeSensor = getSensorById(sensorId);
   if (!activeSensor) return;
 
   currentTimeframe = 'live';
 
-  // Configurar elementos de texto e iconos
+  // Configurar metadatos
   detailTitle.textContent = activeSensor.name;
   detailCategory.textContent = activeSensor.category;
   detailIconWrapper.innerHTML = `<i data-lucide="${activeSensor.icon}" style="width: 32px; height: 32px;"></i>`;
   detailLiveUnit.textContent = activeSensor.unit;
   
-  // Especificaciones técnicas
   technicalSpecs.innerHTML = `
     <div><strong>Modelo:</strong> ${activeSensor.metadata.sensorModel}</div>
     <div><strong>Precisión:</strong> ${activeSensor.metadata.accuracy}</div>
@@ -144,72 +391,38 @@ async function openSensorDetail(sensorId) {
     <div><strong>Pines recomendados:</strong> ${activeSensor.metadata.recommendedPins}</div>
   `;
 
-  // Código Arduino
   arduinoCodeSnippet.textContent = activeSensor.arduinoCode;
 
-  // Restaurar pestañas a la inicial (Guía)
+  // Restaurar pestañas y selectores
   switchTab('guide');
-  
-  // Limpiar clases activas en los botones de rango y poner 'Tiempo Real' activo
   document.querySelectorAll('.timeframe-btn').forEach(btn => {
     btn.classList.remove('active');
-    if (btn.getAttribute('data-timeframe') === 'live') {
-      btn.classList.add('active');
-    }
+    if (btn.getAttribute('data-timeframe') === 'live') btn.classList.add('active');
   });
 
-  // Mostrar la pantalla de detalle y ocultar Home
-  homeView.style.display = 'none';
-  detailView.style.display = 'block';
+  // Mostrar vista de detalle
+  switchView('detailView');
 
-  // Forzar actualización de iconos de Lucide
-  lucide.createIcons();
-
-  // Obtener datos históricos simulados iniciales e iniciar gráfico
+  // Obtener historial en vivo e iniciar gráfico
   detailDataBuffer = await activeSensor.getData('live');
-  
-  // Establecer lectura actual
   const lastPoint = detailDataBuffer[detailDataBuffer.length - 1];
   detailLiveValue.textContent = lastPoint ? lastPoint.value : '--';
 
-  // Inicializar Chart.js
   initChart('sensorChart', activeSensor.name, detailDataBuffer, activeSensor.unit);
 
-  // Iniciar ciclo de actualización en vivo para el detalle
+  // Iniciar loop de actualización en tiempo real en la vista detallada
   startDetailLiveUpdates();
 }
 
-/**
- * Cierra la vista detallada y regresa al Home.
- */
-function closeSensorDetail() {
-  stopDetailLiveUpdates();
-  
-  detailView.style.display = 'none';
-  homeView.style.display = 'block';
-  
-  activeSensor = null;
-  
-  // Reanudar actualizaciones en Home
-  startHomeLiveUpdates();
-  // Recargar iconos en el Home
-  lucide.createIcons();
-}
-
-/**
- * Inicia el loop de actualización en tiempo real en la pantalla de detalle.
- */
 function startDetailLiveUpdates() {
   if (detailIntervalId) clearInterval(detailIntervalId);
 
   detailIntervalId = setInterval(() => {
     if (!activeSensor || currentTimeframe !== 'live') return;
 
-    // Obtener nuevo valor en tiempo real
     const newVal = activeSensor.getLiveValue();
     detailLiveValue.textContent = newVal;
 
-    // Agregar al búfer de datos
     const now = new Date();
     const newPoint = {
       timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -217,20 +430,14 @@ function startDetailLiveUpdates() {
     };
 
     detailDataBuffer.push(newPoint);
-    
-    // Mantener sólo los últimos 15 puntos en pantalla
     if (detailDataBuffer.length > 15) {
       detailDataBuffer.shift();
     }
 
-    // Actualizar el gráfico de forma limpia
     updateChart(detailDataBuffer);
-  }, 3000); // Cada 3 segundos
+  }, 3000);
 }
 
-/**
- * Detiene el loop de actualización en tiempo real del detalle.
- */
 function stopDetailLiveUpdates() {
   if (detailIntervalId) {
     clearInterval(detailIntervalId);
@@ -238,15 +445,10 @@ function stopDetailLiveUpdates() {
   }
 }
 
-/**
- * Cambia el período del gráfico (tiempo real, diario, semanal).
- * @param {string} timeframe - 'live' | 'day' | 'week'
- */
 async function changeTimeframe(timeframe) {
   if (!activeSensor) return;
   currentTimeframe = timeframe;
 
-  // Actualizar clases de botones
   document.querySelectorAll('.timeframe-btn').forEach(btn => {
     if (btn.getAttribute('data-timeframe') === timeframe) {
       btn.classList.add('active');
@@ -255,7 +457,6 @@ async function changeTimeframe(timeframe) {
     }
   });
 
-  // Ocultar o mostrar valor en vivo según el contexto
   const liveLabel = document.querySelector('.live-stat .label');
   if (timeframe === 'live') {
     liveLabel.textContent = 'Lectura Actual';
@@ -265,10 +466,8 @@ async function changeTimeframe(timeframe) {
     stopDetailLiveUpdates();
   }
 
-  // Obtener los datos correspondientes
   detailDataBuffer = await activeSensor.getData(timeframe);
 
-  // Mostrar promedio en la tarjeta si no es tiempo real
   if (timeframe !== 'live') {
     const sum = detailDataBuffer.reduce((acc, p) => acc + p.value, 0);
     const avg = sum / (detailDataBuffer.length || 1);
@@ -278,16 +477,10 @@ async function changeTimeframe(timeframe) {
     detailLiveValue.textContent = lastPoint ? lastPoint.value : '--';
   }
 
-  // Re-inicializar el gráfico para ajustar escalas y grids
   initChart('sensorChart', activeSensor.name, detailDataBuffer, activeSensor.unit);
 }
 
-/**
- * Cambia entre pestañas de documentación en el panel de detalle.
- * @param {string} tabId - 'guide' | 'code'
- */
 function switchTab(tabId) {
-  // Desactivar todas las pestañas y contenidos
   document.querySelectorAll('.doc-tab').forEach(tab => {
     if (tab.getAttribute('data-tab') === tabId) {
       tab.classList.add('active');
@@ -305,10 +498,6 @@ function switchTab(tabId) {
   });
 }
 
-/**
- * Muestra una notificación emergente estilizada.
- * @param {string} message - Mensaje a mostrar.
- */
 function showToast(message) {
   toastMessage.textContent = message;
   toastNotification.classList.add('show');
@@ -318,46 +507,28 @@ function showToast(message) {
   }, 2500);
 }
 
-/**
- * Copia el código Arduino al portapapeles del usuario.
- */
 function copyArduinoCode() {
   if (!activeSensor) return;
-  
   navigator.clipboard.writeText(activeSensor.arduinoCode)
-    .then(() => {
-      showToast('¡Código copiado al portapapeles!');
-    })
-    .catch(err => {
-      console.error('Error al copiar: ', err);
-    });
+    .then(() => showToast('¡Código copiado al portapapeles!'))
+    .catch(err => console.error('Error al copiar: ', err));
 }
 
-/**
- * Exporta el búfer de datos actual en formato CSV.
- */
 function exportDataToCsv() {
   if (!activeSensor || !detailDataBuffer.length) return;
 
   let csvContent = 'data:text/csv;charset=utf-8,';
-  
-  // Encabezados (fomentando la etapa de Organización)
   csvContent += 'Marca de Tiempo,Valor,Unidad\r\n';
 
-  // Filas
   detailDataBuffer.forEach(row => {
     csvContent += `"${row.timestamp}",${row.value},"${activeSensor.unit}"\r\n`;
   });
 
-  // Crear elemento de descarga y activarlo
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement('a');
   link.setAttribute('href', encodedUri);
-  
-  // Nombre del archivo indicando sensor y rango
   const dateStr = new Date().toISOString().slice(0, 10);
   link.setAttribute('download', `datos_${activeSensor.id}_${currentTimeframe}_${dateStr}.csv`);
-  
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -367,10 +538,42 @@ function exportDataToCsv() {
 
 // --- CONFIGURACIÓN DE LISTENERS DE EVENTOS ---
 function setupEventListeners() {
-  // Botón Volver
-  backToHomeBtn.addEventListener('click', closeSensorDetail);
+  // Botón volver del detalle
+  backToHomeBtn.addEventListener('click', () => {
+    switchView('homeView');
+    // Actualizar clase activa en navbar
+    navLinks.forEach(l => l.classList.remove('active'));
+    document.querySelector('.nav-links a[data-target="homeView"]').classList.add('active');
+  });
 
-  // Botones de Timeframe
+  // Botones del Hero
+  document.getElementById('heroExploreBtn').addEventListener('click', () => switchView('datosView'));
+  document.getElementById('heroDocBtn').addEventListener('click', () => switchView('recursosView'));
+  document.getElementById('heroSensorsBtn').addEventListener('click', () => switchView('sensorsIndexView'));
+
+  // Cambiar variable en gráfico destacado
+  featuredVariableSelect.addEventListener('change', initFeaturedChart);
+
+  // Botón ver más visualizaciones del gráfico destacado
+  seeAllVizBtn.addEventListener('click', () => {
+    switchView('sensorsIndexView');
+  });
+
+  // Enlace "Ver todos" en columna de sensores
+  document.getElementById('seeAllSensorsLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    switchView('sensorsIndexView');
+  });
+
+  // Botones "Más información" en columna de sensores
+  document.querySelectorAll('.sensor-mini-card button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sensorId = btn.getAttribute('data-sensor-id');
+      openSensorDetail(sensorId);
+    });
+  });
+
+  // Rango de gráficos de detalle
   document.querySelectorAll('.timeframe-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const tf = e.currentTarget.getAttribute('data-timeframe');
@@ -378,7 +581,7 @@ function setupEventListeners() {
     });
   });
 
-  // Pestañas de Documentación
+  // Pestañas de documentación de detalle
   document.querySelectorAll('.doc-tab').forEach(tab => {
     tab.addEventListener('click', (e) => {
       const tabId = e.currentTarget.getAttribute('data-tab');
@@ -386,17 +589,9 @@ function setupEventListeners() {
     });
   });
 
-  // Copiar código
+  // Copiar código y descargar datos en detalle
   copyCodeBtn.addEventListener('click', copyArduinoCode);
-
-  // Exportar datos
   exportCsvBtn.addEventListener('click', exportDataToCsv);
-
-  // Alternar tema
-  const themeToggleBtn = document.getElementById('themeToggleBtn');
-  if (themeToggleBtn) {
-    themeToggleBtn.addEventListener('click', toggleTheme);
-  }
 }
 
 // --- SOPORTE DE TEMAS (CLARO Y OSCURO) ---
@@ -415,8 +610,13 @@ function toggleTheme() {
   localStorage.setItem('theme', newTheme);
   updateThemeIcon(newTheme);
   
-  // Si hay un gráfico activo, debemos redibujarlo con las variables de color del nuevo tema
-  if (activeSensor && detailDataBuffer.length) {
+  // Si estamos en el home y hay un gráfico destacado, re-inicializar
+  if (mainViews.homeView.style.display !== 'none') {
+    initFeaturedChart();
+  }
+  
+  // Si hay un gráfico de detalle activo, re-inicializar
+  if (activeSensor && detailDataBuffer.length && mainViews.detailView.style.display !== 'none') {
     initChart('sensorChart', activeSensor.name, detailDataBuffer, activeSensor.unit);
   }
 }

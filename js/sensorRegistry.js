@@ -1,9 +1,11 @@
 import { temperatureSensor } from './sensors/temperature.js';
 import { humiditySensor } from './sensors/humidity.js';
+import { airQualitySensor } from './sensors/airquality.js';
 
 const registry = [
   temperatureSensor,
-  humiditySensor
+  humiditySensor,
+  airQualitySensor
 ];
 
 /**
