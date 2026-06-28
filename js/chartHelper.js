@@ -22,10 +22,19 @@ export function initChart(canvasId, label, dataPoints, unit) {
   const labels = dataPoints.map(p => p.timestamp);
   const values = dataPoints.map(p => p.value);
   
+  // Obtener variables de colores de CSS dinámicamente
+  const computedStyle = getComputedStyle(document.documentElement);
+  const gridColor = computedStyle.getPropertyValue('--chart-grid').trim() || 'rgba(0, 0, 0, 0.05)';
+  const ticksColor = computedStyle.getPropertyValue('--chart-ticks').trim() || '#64748b';
+  const tooltipBg = computedStyle.getPropertyValue('--tooltip-bg').trim() || '#0f172a';
+  const tooltipBorder = computedStyle.getPropertyValue('--tooltip-border').trim() || 'rgba(16, 185, 129, 0.2)';
+  const accentPrimary = computedStyle.getPropertyValue('--accent-primary').trim() || '#059669';
+  const textPrimary = computedStyle.getPropertyValue('--text-primary').trim() || '#0f172a';
+  
   // Crear degradado elegante para el área bajo la curva
   const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-  gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
-  gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+  gradient.addColorStop(0, accentPrimary + '40'); // ~25% de opacidad
+  gradient.addColorStop(1, accentPrimary + '00'); // 0% de opacidad
 
   // Configuración de Chart.js
   chartInstance = new Chart(ctx, {
@@ -35,18 +44,18 @@ export function initChart(canvasId, label, dataPoints, unit) {
       datasets: [{
         label: label,
         data: values,
-        borderColor: '#10b981',
-        borderWidth: 2,
+        borderColor: accentPrimary,
+        borderWidth: 2.5,
         backgroundColor: gradient,
         fill: true,
         tension: 0.4, // Suaviza la línea
-        pointBackgroundColor: '#10b981',
-        pointBorderColor: '#080c0a',
+        pointBackgroundColor: accentPrimary,
+        pointBorderColor: computedStyle.getPropertyValue('--bg-surface').trim() || '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 4,
         pointHoverRadius: 6,
-        pointHoverBackgroundColor: '#34d399',
-        pointHoverBorderColor: '#080c0a',
+        pointHoverBackgroundColor: accentPrimary,
+        pointHoverBorderColor: computedStyle.getPropertyValue('--bg-surface').trim() || '#ffffff',
         pointHoverBorderWidth: 2
       }]
     },
@@ -58,20 +67,20 @@ export function initChart(canvasId, label, dataPoints, unit) {
           display: false
         },
         tooltip: {
-          backgroundColor: 'rgba(14, 22, 17, 0.95)',
-          titleColor: '#9ca3af',
+          backgroundColor: tooltipBg,
+          titleColor: ticksColor,
           titleFont: {
             family: 'Plus Jakarta Sans',
             size: 11,
             weight: 'normal'
           },
-          bodyColor: '#f3f4f6',
+          bodyColor: computedStyle.getPropertyValue('--text-primary').trim() || '#ffffff',
           bodyFont: {
             family: 'Plus Jakarta Sans',
             size: 14,
             weight: 'bold'
           },
-          borderColor: 'rgba(16, 185, 129, 0.25)',
+          borderColor: tooltipBorder,
           borderWidth: 1,
           padding: 12,
           cornerRadius: 8,
@@ -86,11 +95,11 @@ export function initChart(canvasId, label, dataPoints, unit) {
       scales: {
         x: {
           grid: {
-            color: 'rgba(255, 255, 255, 0.03)',
+            color: gridColor,
             drawBorder: false
           },
           ticks: {
-            color: '#9ca3af',
+            color: ticksColor,
             font: {
               family: 'Plus Jakarta Sans',
               size: 11
@@ -99,11 +108,11 @@ export function initChart(canvasId, label, dataPoints, unit) {
         },
         y: {
           grid: {
-            color: 'rgba(255, 255, 255, 0.04)',
+            color: gridColor,
             drawBorder: false
           },
           ticks: {
-            color: '#9ca3af',
+            color: ticksColor,
             font: {
               family: 'Plus Jakarta Sans',
               size: 11

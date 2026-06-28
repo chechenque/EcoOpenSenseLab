@@ -31,6 +31,7 @@ const toastMessage = document.getElementById('toastMessage');
 
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   renderHomeGrid();
   startHomeLiveUpdates();
   setupEventListeners();
@@ -390,4 +391,44 @@ function setupEventListeners() {
 
   // Exportar datos
   exportCsvBtn.addEventListener('click', exportDataToCsv);
+
+  // Alternar tema
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', toggleTheme);
+  }
+}
+
+// --- SOPORTE DE TEMAS (CLARO Y OSCURO) ---
+
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeIcon(newTheme);
+  
+  // Si hay un gráfico activo, debemos redibujarlo con las variables de color del nuevo tema
+  if (activeSensor && detailDataBuffer.length) {
+    initChart('sensorChart', activeSensor.name, detailDataBuffer, activeSensor.unit);
+  }
+}
+
+function updateThemeIcon(theme) {
+  const sunIcon = document.querySelector('.sun-icon');
+  const moonIcon = document.querySelector('.moon-icon');
+  if (theme === 'dark') {
+    if (sunIcon) sunIcon.style.display = 'block';
+    if (moonIcon) moonIcon.style.display = 'none';
+  } else {
+    if (sunIcon) sunIcon.style.display = 'none';
+    if (moonIcon) moonIcon.style.display = 'block';
+  }
 }
