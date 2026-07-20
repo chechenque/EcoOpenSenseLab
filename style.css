@@ -1108,3 +1108,37 @@ code {
   cursor: zoom-in;
 }
 
+/* FILTROS Y BÚSQUEDA */
+#sensorSearchInput:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.15);
+}
+
+.filter-tag {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.filter-tag:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--text-muted);
+}
+
+.filter-tag.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+}
+[data-theme="dark"] .filter-tag.active {
+  color: var(--bg-dark);
+}
+
+

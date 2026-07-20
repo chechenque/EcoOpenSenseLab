@@ -340,6 +340,20 @@
         <h2 class="section-title">
           <i data-lucide="radio"></i> Módulos de Sensores Disponibles
         </h2>
+        
+        <!-- Panel de control de Búsqueda y Filtros -->
+        <div class="search-filter-controls" style="margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+          <div class="search-input-wrapper" style="position: relative; max-width: 500px; width: 100%;">
+            <input type="text" id="sensorSearchInput" placeholder="Buscar por nombre, modelo, descripción o tags..." 
+                   style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-light); background: var(--bg-surface); color: var(--text-primary); font-size: 0.95rem; outline: none; transition: border-color var(--transition-fast);">
+            <i data-lucide="search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted);"></i>
+          </div>
+          <div class="tag-filters-container" id="tagFiltersContainer" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.85rem; color: var(--text-muted); margin-right: 0.25rem;">Filtrar por tags:</span>
+            <!-- Se poblará dinámicamente -->
+          </div>
+        </div>
+
         <div class="sensors-grid" id="sensorsGrid">
           <!-- Inyectado dinámicamente desde js -->
         </div>

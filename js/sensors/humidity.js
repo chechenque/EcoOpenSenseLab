@@ -15,6 +15,7 @@ export const humiditySensor = {
     recommendedPins: 'I2C (SDA: GPIO 21, SCL: GPIO 22 en ESP32)'
   },
   schematic: 'assets/schematics/sensorGases_esp32_bb.svg',
+  tags: ['humedad', 'clima', 'meteorología', 'aht21', 'i2c', 'esp32', 'aula', 'campo'],
   setupInstructions: [
     '<strong>Alimentación (VCC):</strong> Conecta el pin <strong>VCC / VIN</strong> del módulo de sensores al pin de <strong>3.3V</strong> de la placa ESP32.',
     '<strong>Tierra (GND):</strong> Conecta el pin <strong>GND</strong> del módulo al pin de tierra <strong>GND</strong> de la placa ESP32.',

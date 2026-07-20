@@ -322,24 +322,100 @@ async function initFeaturedChart() {
   });
 }
 
-// --- RENDERIZADO DEL ANTERIOR HOME (INDEX DE SENSORES) ---
+// --- BÚSQUEDA Y FILTRADO DE SENSORES ---
+let searchQuery = "";
+let selectedTags = new Set();
 
 /**
- * Renderiza el catálogo completo de sensores (el antiguo Home).
+ * Renderiza los botones de tags dinámicamente.
  */
-function renderSensorsIndexGrid() {
+function renderTagFilters() {
+  const container = document.getElementById('tagFiltersContainer');
+  if (!container) return;
+
+  const allSensors = getSensors();
+  const uniqueTags = new Set();
+  allSensors.forEach(sensor => {
+    if (sensor.tags) {
+      sensor.tags.forEach(tag => uniqueTags.add(tag));
+    }
+  });
+
+  container.innerHTML = `<span style="font-size: 0.85rem; color: var(--text-muted); margin-right: 0.25rem;">Filtrar por tags:</span>`;
+
+  uniqueTags.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = `filter-tag ${selectedTags.has(tag) ? 'active' : ''}`;
+    btn.textContent = tag;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+      } else {
+        selectedTags.add(tag);
+      }
+      renderTagFilters();
+      renderSensorsIndexGrid(false);
+    });
+    container.appendChild(btn);
+  });
+}
+
+/**
+ * Renderiza el catálogo completo de sensores (el antiguo Home) con soporte de búsqueda y tags.
+ */
+function renderSensorsIndexGrid(updateTags = true) {
   const grid = document.getElementById('sensorsGrid');
   if (!grid) return;
   
   grid.innerHTML = '';
   const sensors = getSensors();
 
-  sensors.forEach(sensor => {
+  // Filtrado de sensores
+  const filteredSensors = sensors.filter(sensor => {
+    // Filtrar por texto de búsqueda
+    const matchesQuery = !searchQuery || [
+      sensor.name,
+      sensor.metadata.sensorModel,
+      sensor.description,
+      ...(sensor.tags || [])
+    ].some(text => text.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    // Filtrar por tags activos
+    const matchesTags = selectedTags.size === 0 || 
+      [...selectedTags].every(tag => (sensor.tags || []).includes(tag));
+
+    return matchesQuery && matchesTags;
+  });
+
+  if (updateTags) {
+    renderTagFilters();
+  }
+
+  if (filteredSensors.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+        <i data-lucide="search" style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.4;"></i>
+        <p style="font-size: 1.05rem; font-weight: 600; color: var(--text-primary);">No se encontraron sensores</p>
+        <p style="font-size: 0.9rem; margin-top: 0.25rem;">Intenta cambiar los términos de búsqueda o los tags activos.</p>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  filteredSensors.forEach(sensor => {
     const card = document.createElement('div');
     card.className = 'glass-card sensor-card';
     card.setAttribute('data-id', sensor.id);
     
     const val = sensor.getLiveValue();
+
+    // Renderizar tags de la tarjeta del sensor
+    const tagBadges = (sensor.tags || [])
+      .map(tag => `<span class="sensor-tag" style="background: rgba(var(--accent-primary-rgb), 0.08); color: var(--accent-primary); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase;">${tag}</span>`)
+      .slice(0, 3)
+      .join(' ');
 
     card.innerHTML = `
       <span class="activity-dot"></span>
@@ -349,11 +425,14 @@ function renderSensorsIndexGrid() {
         </div>
         <span class="sensor-badge">${sensor.metadata.sensorModel}</span>
       </div>
-      <div class="sensor-meta">
+      <div class="sensor-meta" style="flex-grow: 1;">
         <h2>${sensor.name}</h2>
         <p>${sensor.description}</p>
+        <div class="sensor-card-tags" style="display: flex; gap: 0.35rem; margin-top: 0.85rem; flex-wrap: wrap;">
+          ${tagBadges}
+        </div>
       </div>
-      <div class="sensor-reading">
+      <div class="sensor-reading" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
         <span class="sensor-value" id="index-val-${sensor.id}">${val}</span>
         <span class="sensor-unit">${sensor.unit}</span>
       </div>
@@ -365,6 +444,8 @@ function renderSensorsIndexGrid() {
 
     grid.appendChild(card);
   });
+
+  lucide.createIcons();
 }
 
 // --- VISTA DETALLADA INDIVIDUAL (COMPATIBILIDAD) ---
@@ -588,7 +669,14 @@ function setupEventListeners() {
     e.preventDefault();
     switchView('sensorsIndexView');
   });
-
+// Search input handling
+  const searchInput = document.getElementById('sensorSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderSensorsIndexGrid(false);
+    });
+  }
   // Botones "Más información" en columna de sensores
   document.querySelectorAll('.sensor-mini-card button').forEach(btn => {
     btn.addEventListener('click', () => {

@@ -15,6 +15,7 @@ export const airQualitySensor = {
     recommendedPins: 'I2C (SDA: GPIO 21, SCL: GPIO 22 en ESP32)'
   },
   schematic: 'assets/schematics/sensorGases_esp32_bb.svg',
+  tags: ['gases', 'calidad aire', 'co2', 'tvoc', 'i2c', 'esp32', 'aula', 'recoleccion'],
   setupInstructions: [
     '<strong>Alimentación (VCC):</strong> Conecta el pin <strong>VCC / VIN</strong> del módulo de sensores al pin de <strong>3.3V</strong> de la placa ESP32.',
     '<strong>Tierra (GND):</strong> Conecta el pin <strong>GND</strong> del módulo al pin de tierra <strong>GND</strong> de la placa ESP32.',
@@ -22,7 +23,7 @@ export const airQualitySensor = {
     '<strong>Bus I2C (SCL):</strong> Conecta el pin <strong>SCL</strong> del módulo al pin digital <strong>GPIO 22</strong> de la placa ESP32.',
     '<strong>Conexión Compartida:</strong> Al ser sensores I2C, el ENS160 y el AHT21 comparten el mismo bus físico. Se conectan a los mismos pines en paralelo.'
   ],
-  
+
   // Código de ejemplo para la sección de Documentación
   arduinoCode: `/*
   EcoOpenSenseLab - Conexión de Sensor de Calidad del Aire ENS160 (eCO2/TVOC)
@@ -105,7 +106,7 @@ void loop() {
       for (let i = 23; i >= 0; i--) {
         const time = new Date(now.getTime() - i * 3600000);
         const hour = time.getHours();
-        
+
         // El CO2 suele subir por la noche en la naturaleza (respiración de plantas sin fotosíntesis)
         // O durante el día en salones de clase. Asumiremos ciclo natural: pico a las 4 AM, mínimo a las 4 PM.
         const rad = ((hour - 4) / 24) * 2 * Math.PI;
@@ -124,7 +125,7 @@ void loop() {
       for (let i = 6; i >= 0; i--) {
         const time = new Date(now.getTime() - i * 86400000);
         const dayName = days[time.getDay()];
-        
+
         // Promedio diario con fluctuaciones normales alrededor de 520 ppm
         const val = 525.0 + (Math.sin(i) * 25) + (Math.random() - 0.5) * 15;
         data.push({
