@@ -9,26 +9,34 @@ export const airQualitySensor = {
   icon: 'wind',
   unit: 'ppm',
   metadata: {
-    sensorModel: 'EN160 / SGP30',
+    sensorModel: 'ENS160 / SGP30',
     accuracy: '±10% de la lectura',
     range: '400 a 60000 ppm',
     recommendedPins: 'I2C (SDA: GPIO 21, SCL: GPIO 22 en ESP32)'
   },
+  schematic: 'assets/schematics/sensorGases_esp32_bb.svg',
+  setupInstructions: [
+    '<strong>Alimentación (VCC):</strong> Conecta el pin <strong>VCC / VIN</strong> del módulo de sensores al pin de <strong>3.3V</strong> de la placa ESP32.',
+    '<strong>Tierra (GND):</strong> Conecta el pin <strong>GND</strong> del módulo al pin de tierra <strong>GND</strong> de la placa ESP32.',
+    '<strong>Bus I2C (SDA):</strong> Conecta el pin <strong>SDA</strong> del módulo al pin digital <strong>GPIO 21</strong> de la placa ESP32.',
+    '<strong>Bus I2C (SCL):</strong> Conecta el pin <strong>SCL</strong> del módulo al pin digital <strong>GPIO 22</strong> de la placa ESP32.',
+    '<strong>Conexión Compartida:</strong> Al ser sensores I2C, el ENS160 y el AHT21 comparten el mismo bus físico. Se conectan a los mismos pines en paralelo.'
+  ],
   
   // Código de ejemplo para la sección de Documentación
   arduinoCode: `/*
-  EcoOpenSenseLab - Conexión de Sensor de Calidad del Aire EN160 (eCO2/TVOC)
+  EcoOpenSenseLab - Conexión de Sensor de Calidad del Aire ENS160 (eCO2/TVOC)
   Etapa: Recolección y Documentación
 */
 
 #include <Wire.h>
-#include "Adafruit_SGP30.h" // El chip interno EN160 funciona de manera similar al SGP30
+#include "Adafruit_SGP30.h" // El chip interno ENS160 funciona de manera similar al SGP30
 
 Adafruit_SGP30 sgp;
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("Inicializando sensor de Calidad del Aire EN160/SGP30...");
+  Serial.println("Inicializando sensor de Calidad del Aire ENS160/SGP30...");
 
   if (! sgp.begin()){
     Serial.println("Sensor no encontrado :(");

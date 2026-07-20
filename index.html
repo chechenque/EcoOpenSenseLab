@@ -201,13 +201,13 @@
           </div>
 
           <div class="sensors-cards-row">
-            <!-- Ficha Sensor 1: EN160 -->
+            <!-- Ficha Sensor 1: ENS160 -->
             <div class="sensor-mini-card">
               <div class="sensor-img-placeholder">
                 <i data-lucide="wind" style="width: 32px; height: 32px; color: var(--accent-primary);"></i>
               </div>
               <div class="sensor-mini-info">
-                <h4>EN160</h4>
+                <h4>ENS160</h4>
                 <ul>
                   <li><i data-lucide="check" class="bullet-check"></i> Calidad del aire</li>
                   <li><i data-lucide="check" class="bullet-check"></i> TVOC</li>
@@ -416,21 +416,24 @@
           <!-- Pestaña 1: Guía de Conexión -->
           <div class="doc-tab-content active" id="tabContent-guide">
             <div class="setup-guide">
-              <ol>
-                <li><strong>Alimentación:</strong> Conecta el pin <strong>VCC</strong> del sensor al pin de <strong>3.3V
-                    o 5V</strong> del microcontrolador.</li>
-                <li><strong>Tierra:</strong> Conecta el pin <strong>GND</strong> del sensor al pin de tierra
-                  <strong>GND</strong> del microcontrolador.
-                </li>
-                <li><strong>Señal/Datos:</strong> Conecta el pin de <strong>Datos/SDA</strong> al pin digital
-                  recomendado (ver especificaciones técnicas del sensor).</li>
-                <li><strong>Resistencia (Opcional):</strong> Para sensores DHT22, se aconseja una resistencia pull-up de
-                  10kΩ entre VCC y la línea de datos si el módulo no viene pre-ensamblado en placa.</li>
+              <ol id="detailSetupInstructions">
+                <!-- Se poblará dinámicamente -->
               </ol>
-              <p style="font-size: 0.875rem; color: var(--text-muted);">
+              <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">
                 * Nota: Estas conexiones forman parte de la etapa de <strong>Recolección</strong> y aseguran la correcta
                 lectura física del ecosistema.
               </p>
+              
+              <!-- Contenedor del Esquema de Conexión -->
+              <div class="schematic-container" id="detailSchematicContainer" style="display: none;">
+                <h4 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary); text-align: left; display: flex; align-items: center; gap: 0.35rem;">
+                  <i data-lucide="cpu" style="width: 16px; height: 16px;"></i>
+                  Esquema de Conexión y Cableado
+                </h4>
+                <div class="schematic-wrapper">
+                  <img id="detailSchematicImg" src="" alt="Esquema del sensor">
+                </div>
+              </div>
             </div>
           </div>
 

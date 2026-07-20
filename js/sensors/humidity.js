@@ -9,48 +9,51 @@ export const humiditySensor = {
   icon: 'droplets',
   unit: '%',
   metadata: {
-    sensorModel: 'DHT22 / AM2302',
+    sensorModel: 'AHT21',
     accuracy: '±2% HR',
     range: '0 a 100% HR',
-    recommendedPins: 'GPIO 4 (ESP32) o Pin 2 (Arduino)'
+    recommendedPins: 'I2C (SDA: GPIO 21, SCL: GPIO 22 en ESP32)'
   },
+  schematic: 'assets/schematics/sensorGases_esp32_bb.svg',
+  setupInstructions: [
+    '<strong>Alimentación (VCC):</strong> Conecta el pin <strong>VCC / VIN</strong> del módulo de sensores al pin de <strong>3.3V</strong> de la placa ESP32.',
+    '<strong>Tierra (GND):</strong> Conecta el pin <strong>GND</strong> del módulo al pin de tierra <strong>GND</strong> de la placa ESP32.',
+    '<strong>Bus I2C (SDA):</strong> Conecta el pin <strong>SDA</strong> del módulo al pin digital <strong>GPIO 21</strong> de la placa ESP32.',
+    '<strong>Bus I2C (SCL):</strong> Conecta el pin <strong>SCL</strong> del módulo al pin digital <strong>GPIO 22</strong> de la placa ESP32.',
+    '<strong>Conexión Compartida:</strong> Al ser sensores I2C, el ENS160 y el AHT21 comparten el mismo bus físico. Se conectan a los mismos pines en paralelo.'
+  ],
   
   // Código de ejemplo para la sección de Documentación
   arduinoCode: `/*
-  EcoOpenSenseLab - Conexión de Sensor de Humedad DHT22
+  EcoOpenSenseLab - Conexión de Sensor de Temperatura y Humedad AHT21
   Etapa: Recolección y Documentación
 */
 
-#include "DHT.h"
+#include <Adafruit_AHTX0.h>
 
-#define DHTPIN 4     // Pin digital conectado al sensor DHT22 (GPIO 4 en ESP32)
-#define DHTTYPE DHT22   // Tipo de sensor dht
-
-DHT dht(DHTPIN, DHTTYPE);
+Adafruit_AHTX0 aht;
 
 void setup() {
   Serial.begin(115200);
-  Serial.println(F("Iniciando sensor DHT22..."));
-  dht.begin();
+  Serial.println("Iniciando sensor AHT21...");
+
+  if (!aht.begin()) {
+    Serial.println("No se pudo encontrar el sensor AHT21. ¡Verifica las conexiones!");
+    while (1) delay(10);
+  }
+  Serial.println("Sensor AHT21 inicializado con éxito.");
 }
 
 void loop() {
-  // Esperar 2 segundos entre mediciones
-  delay(2000);
-
-  // Leer la humedad relativa (%)
-  float h = dht.readHumidity();
-
-  // Verificar si la lectura falló
-  if (isnan(h)) {
-    Serial.println(F("Error al leer del sensor DHT22!"));
-    return;
-  }
+  sensors_event_t humidity, temp;
+  aht.getEvent(&humidity, &temp); // Obtener eventos de lectura
 
   // Imprimir en consola en formato serializable (JSON)
   Serial.print("{ \\"sensor\\": \\"humedad\\", \\"valor\\": ");
-  Serial.print(h);
+  Serial.print(humidity.relative_humidity);
   Serial.println(" }");
+
+  delay(2000); // Esperar 2 segundos entre lecturas
 }`,
 
   // Estado local para valor en tiempo real

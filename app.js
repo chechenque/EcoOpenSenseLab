@@ -391,7 +391,31 @@ async function openSensorDetail(sensorId) {
     <div><strong>Pines recomendados:</strong> ${activeSensor.metadata.recommendedPins}</div>
   `;
 
+  // Poblar instrucciones de conexión dinámicamente
+  const setupInstructionsEl = document.getElementById('detailSetupInstructions');
+  if (setupInstructionsEl && activeSensor.setupInstructions) {
+    setupInstructionsEl.innerHTML = activeSensor.setupInstructions
+      .map(instruction => `<li>${instruction}</li>`)
+      .join('');
+  }
+
+  // Poblar y mostrar esquema de conexión si existe
+  const schematicContainer = document.getElementById('detailSchematicContainer');
+  const schematicImg = document.getElementById('detailSchematicImg');
+  if (schematicContainer && schematicImg) {
+    if (activeSensor.schematic) {
+      schematicImg.src = activeSensor.schematic;
+      schematicContainer.style.display = 'block';
+    } else {
+      schematicImg.src = '';
+      schematicContainer.style.display = 'none';
+    }
+  }
+
   arduinoCodeSnippet.textContent = activeSensor.arduinoCode;
+
+  // Renderizar iconos de Lucide actualizados
+  lucide.createIcons();
 
   // Restaurar pestañas y selectores
   switchTab('guide');
