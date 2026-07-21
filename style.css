@@ -1060,8 +1060,27 @@ code {
 }
 
 .toast {
-  background: var(--text-primary);
-  color: var(--bg-dark);
+  display: none; /* hidden by default */
+}
+
+/* Visible when active */
+.toast.show {
+  display: flex; /* matches layout of toast */
+  background: var(--bg-surface); /* light mode background */
+  color: var(--text-primary);
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .toast.show {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+/* Light mode (optional) */
+[data-theme="light"] .toast.show {
+  background: var(--bg-light);
+  color: var(--text-primary);
 }
 
 /* ANIMACIONES */
